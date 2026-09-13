@@ -1,4 +1,5 @@
 from scanner.port_scanner import scan_ports
+from scanner.service_detector import detect_service
 
 
 def main():
@@ -18,7 +19,7 @@ def main():
         return
 
     print(f"Scan results for {target}")
-    print("-" * 30)
+    print("-" * 50)
 
     open_ports = [
         result for result in results
@@ -26,9 +27,23 @@ def main():
     ]
 
     for result in open_ports:
+        service, banner = detect_service(
+            target,
+            result.port,
+        )
+
+        result.service = service
+        result.version = banner
+
         print(f"{result.port}/tcp OPEN")
 
-    print("-" * 30)
+        if service:
+            print(f"  Service: {service}")
+
+        if banner:
+            print(f"  Banner: {banner[:100]}")
+
+    print("-" * 50)
     print(f"Open ports: {len(open_ports)}")
 
 
