@@ -1,6 +1,8 @@
 import socket
+from concurrent.futures import ThreadPoolExecutor
 
 from models.scan_results import ScanResult
+
 
 
 def scan_port(target: str, port: int, timeout: float = 1.0) -> ScanResult:
@@ -34,10 +36,14 @@ def scan_ports(
         timeout: float = 1.0,
 ) -> list[ScanResult]:
 
-    results = []
+    ports = range(start_port, end_port + 1)
 
-    for port in range(start_port, end_port + 1):
-        result = scan_port(target, port, timeout)
-        results.append(result)
-
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        results = list(
+            executor.map(
+                lambda port: scan_port(target, port, timeout),
+                ports,
+        )
+    )
+    
     return results
